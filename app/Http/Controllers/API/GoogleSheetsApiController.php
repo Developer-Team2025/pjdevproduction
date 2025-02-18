@@ -63,6 +63,7 @@ class GoogleSheetsApiController extends Controller
                 $request->boolean('accept_privacy') ? 1 : 0,
             ];
 
+            //Google Sheet add API
             $this->api_services->rows($ssid, $sheet_tab, [$input]);
 
             // Return success response

@@ -9,6 +9,7 @@ use App\Http\Resources\OurTeamCollection;
 use App\Models\OurTeam;
 use App\Traits\FileUpload;
 use App\Traits\GenerateUniqueId;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class OurTeamsController extends Controller
@@ -23,11 +24,9 @@ class OurTeamsController extends Controller
      *
      * @return \App\Http\Resources\OurTeamCollection
      */
-    public function getOurTeams(Request $request)
+    public function getOurTeams(Request $request): JsonResponse
     {
-        
         $get_data = new OurTeamCollection(OurTeam::with('teamProfileImages')->get());
-
         return response()->json($get_data);
     }
 
@@ -41,7 +40,7 @@ class OurTeamsController extends Controller
      * @param  \App\Http\Requests\FileUploadRequest  $file_request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function createOurTeamProfile(CreateOurTeamRequest $request, FileUploadRequest $file_request)
+    public function createOurTeamProfile(CreateOurTeamRequest $request, FileUploadRequest $file_request): JsonResponse
     {
         try {
             // Generate a unique ID for the team member

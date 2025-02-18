@@ -15,15 +15,15 @@ trait Validation
     protected function failedValidation(Validator $validator)
     {
         // Take the first error message for each field
-        $errors = collect($validator->errors())->mapWithKeys(function ($messages, $fields) {
-            return [$fields => $messages[0]];
+        $required = collect($validator->errors())->mapWithKeys(function ($errors, $validate) {
+            return [$validate => $errors[0]];
         })->toArray();
 
-        // Extract field names and ensure error messages follow "is required" format
-        $field_names = array_keys($errors);
-        $error['errors'] = implode(', ', array_map(fn($fields) => ucfirst(str_replace('_', ' ', $fields)), $field_names)) . ' is required';
+        $fields = array_keys($required);
+        $summary = implode(', ', array_map(fn($input) => ucfirst(str_replace('_', ' ', $input)), $fields)) . ' is required';
 
-        // Throw HttpResponseException response
-        throw new HttpResponseException(response()->json($errors, 422));
+        $response = array_merge($required, ['errors' => $summary]);
+
+        throw new HttpResponseException(response()->json($response, 422));
     }
 }
