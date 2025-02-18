@@ -11,6 +11,8 @@ use App\Traits\FileUpload;
 use App\Traits\GenerateUniqueId;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
+
 
 class OurTeamsController extends Controller
 {
@@ -70,5 +72,19 @@ class OurTeamsController extends Controller
                 'message' => $e->getMessage() // Message from the caught exception.
             ]);
         }
+    }
+    public function readOurTeam(){
+        $imageFiles = File::files(public_path('images/certificate'));
+        $url = url('/');
+        // Filter out the images (e.g., jpg, png) and store in an array
+        $images = [];
+        foreach ($imageFiles as $file) {
+            if (array($file->getExtension())) {
+                $imageName = pathinfo($file->getFilename(), PATHINFO_FILENAME);
+                $arr = array('src'=>"$url/images/certificate/" .$file->getFilename(), 'alt'=> $imageName);
+                $images[] =  $arr ; // Add file name to the array
+            }
+        }
+        return response()->json($images);
     }
 }
