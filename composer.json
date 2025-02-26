@@ -10,10 +10,12 @@
         "google/apiclient": "^2.18",
         "google/apiclient-services": "^0.394.0",
         "laravel/framework": "^11.31",
+        "laravel/octane": "^2.8",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9"
     },
     "require-dev": {
+        "barryvdh/laravel-debugbar": "^3.15",
         "fakerphp/faker": "^1.23",
         "laravel/pail": "^1.1",
         "laravel/pint": "^1.13",
