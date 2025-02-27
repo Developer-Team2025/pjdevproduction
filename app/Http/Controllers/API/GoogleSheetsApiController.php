@@ -68,7 +68,6 @@ class GoogleSheetsApiController extends Controller
 
             // Return success response
             return response()->json(['response' => 'Successfully Saved'], 201);
-
         } catch (\Exception $e) {
             // Return error response if something goes wrong
             return response()->json([
