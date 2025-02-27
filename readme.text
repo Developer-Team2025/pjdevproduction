@@ -1,0 +1,12 @@
+Git Hub Production
+
+Push Request
+1. git init
+2. git remote add origin https://github.com/Developer-Team2025/pjdevproduction.git
+3. git add .
+4. git commit -m "Initial commit"
+5. git branch -M main  # Rename the branch if needed
+6. git push -u origin main
+
+Push & Pull Procedure to Merge
+
