@@ -110,7 +110,7 @@ class GoogleServices
                 ]
             ]);
 
-            // ✅ Header Formatting (KEEP this as is, Blue Background)
+            // Header Formatting (KEEP this as is, Blue Background)
             $headerFormatRequest = new \Google\Service\Sheets\Request([
                 'repeatCell' => [
                     'range' => [
@@ -134,7 +134,7 @@ class GoogleServices
                 ]
             ]);
 
-            // ✅ Data Formatting (Reset to Default: REMOVE Background Color)
+            // Data Formatting (Reset to Default: REMOVE Background Color)
             $dataFormatRequest = new \Google\Service\Sheets\Request([
                 'repeatCell' => [
                     'range' => [

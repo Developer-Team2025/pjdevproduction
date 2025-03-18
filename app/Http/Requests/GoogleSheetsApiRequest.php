@@ -63,31 +63,22 @@ class GoogleSheetsApiRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             $ssid = '1660409-8EKI1oxfJXP55EFfgNnmrwAU3H_sLyEyNuik';
-            $sheet_tab = 'Sheet2';
+            $sheet_tab = 'Sheet1'; // Ensuring data is checked in Sheet2
 
             // Retrieve existing sheet data
-            $existingData = $this->googleServices->sheets($ssid, $sheet_tab);
+            $existingData = app(\App\Services\GoogleServices::class)->sheets($ssid, $sheet_tab);
 
             if ($existingData) {
-                // Prepare the incoming row for comparison
-                $inputRow = [
-                    $this->input('fullname'),
-                    $this->input('email'),
-                    $this->input('phone'),
-                    $this->input('inquiry_type'),
-                    $this->input('country'),
-                    $this->boolean('accept_privacy') ? "Accepted" : "Not Accepted",
-                    $this->input('date_now'),
-                ];
+                $inputFullName = strtolower(trim($this->input('fullname')));
+                $inputEmail = strtolower(trim($this->input('email')));
 
-                $incomingRow = implode('|', array_map('strtolower', array_map('trim', $inputRow)));
-
-                // Check for duplicates
                 foreach ($existingData as $row) {
-                    $existingRow = implode('|', array_map('strtolower', array_map('trim', $row)));
+                    $existingFullName = isset($row[0]) ? strtolower(trim($row[0])) : '';
+                    $existingEmail = isset($row[1]) ? strtolower(trim($row[1])) : '';
 
-                    if ($existingRow === $incomingRow) {
-                        $validator->errors()->add('duplicate', 'Duplicate entry detected. This data already exists.');
+                    if ($existingFullName === $inputFullName && $existingEmail === $inputEmail) {
+                        // If both fullname and email already exist, block the request
+                        $validator->errors()->add('duplicate_entry', 'Invalid Data');
                         break;
                     }
                 }
