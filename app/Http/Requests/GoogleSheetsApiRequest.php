@@ -78,7 +78,7 @@ class GoogleSheetsApiRequest extends FormRequest
 
                     if ($existingFullName === $inputFullName && $existingEmail === $inputEmail) {
                         // If both fullname and email already exist, block the request
-                        $validator->errors()->add('duplicate_entry', 'Invalid Data');
+                        $validator->errors()->add('duplicate_entry', 'The data is already existed in our system');
                         break;
                     }
                 }
