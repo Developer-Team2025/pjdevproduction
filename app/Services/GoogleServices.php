@@ -149,7 +149,7 @@ class GoogleServices
                             'horizontalAlignment' => 'LEFT' // Left-aligned text
                         ]
                     ],
-                    'fields' => 'userEnteredFormat(textFormat, horizontalAlignment)' // ❌ Removed "backgroundColor"
+                    'fields' => 'userEnteredFormat(textFormat, horizontalAlignment)' //
                 ]
             ]);
 
