@@ -46,10 +46,10 @@ class GoogleSheetsApiController extends Controller
         try {
             // Google Sheets settings
             $ssid = '1660409-8EKI1oxfJXP55EFfgNnmrwAU3H_sLyEyNuik';
-            $sheet_tab = 'Sheet1';
+            $sheet_tab = 'Sheet2'; // Sheet2!A1 | Sheet2
 
             // Define header columns
-            $column_header = ['Full Name', 'Email', 'Phone', 'Inquiry Type', 'Country', 'Accept Privacy'];
+            $column_header = ['Full Name', 'Email', 'Phone', 'Inquiry Type', 'Country', 'Accept Privacy', 'Date'];
 
             empty($this->api_services->sheets($ssid, $sheet_tab)) ? $this->api_services->rows($ssid, $sheet_tab, [$column_header]) : false;
 
@@ -60,11 +60,14 @@ class GoogleSheetsApiController extends Controller
                 $request->input('phone'),
                 $request->input('inquiry_type'),
                 $request->input('country'),
-                $request->boolean('accept_privacy') ? 1 : 0,
+                $request->boolean('accept_privacy') ? "Accepted" : false,
+                $request->input('date_now')
             ];
 
             //Google Sheet add API
             $this->api_services->rows($ssid, $sheet_tab, [$input]);
+
+            $this->api_services->sortSheet($ssid, 6, 'Sheet2');
 
             // Return success response
             return response()->json(['response' => 'Successfully Saved'], 201);
