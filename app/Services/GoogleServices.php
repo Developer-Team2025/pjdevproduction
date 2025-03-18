@@ -75,113 +75,107 @@ class GoogleServices
      * @return void
      */
     public function sortSheet(string $spreadsheet_id, int $columnIndex, string $sheetTitle)
-{
-    try {
-        $spreadsheet = $this->services->spreadsheets->get($spreadsheet_id);
-        $sheetId = null;
+    {
+        try {
+            $spreadsheet = $this->services->spreadsheets->get($spreadsheet_id);
+            $sheetId = null;
 
-        foreach ($spreadsheet->getSheets() as $sheet) {
-            if ($sheet->getProperties()->getTitle() === $sheetTitle) {
-                $sheetId = $sheet->getProperties()->getSheetId();
-                break;
+            foreach ($spreadsheet->getSheets() as $sheet) {
+                if ($sheet->getProperties()->getTitle() === $sheetTitle) {
+                    $sheetId = $sheet->getProperties()->getSheetId();
+                    break;
+                }
             }
-        }
 
-        if ($sheetId === null) {
-            \Log::error("Google Sheets API: Sheet '{$sheetTitle}' not found.");
-            return;
-        }
+            if ($sheetId === null) {
+                \Log::error("Google Sheets API: Sheet '{$sheetTitle}' not found.");
+                return;
+            }
 
-        // Sorting request (skip header row)
-        $sortRequest = new \Google\Service\Sheets\Request([
-            'sortRange' => [
-                'range' => [
-                    'sheetId' => $sheetId,
-                    'startRowIndex' => 1, // Skip header row
-                    'startColumnIndex' => 0,
-                    'endColumnIndex' => 7,
-                ],
-                'sortSpecs' => [
-                    [
-                        'dimensionIndex' => $columnIndex,
-                        'sortOrder' => 'ASCENDING'
+            // Sorting request (skip header row)
+            $sortRequest = new \Google\Service\Sheets\Request([
+                'sortRange' => [
+                    'range' => [
+                        'sheetId' => $sheetId,
+                        'startRowIndex' => 1, // Skip header row
+                        'startColumnIndex' => 0,
+                        'endColumnIndex' => 7,
+                    ],
+                    'sortSpecs' => [
+                        [
+                            'dimensionIndex' => $columnIndex,
+                            'sortOrder' => 'ASCENDING'
+                        ]
                     ]
                 ]
-            ]
-        ]);
+            ]);
 
-        // ✅ Header Formatting (KEEP this as is, Blue Background)
-        $headerFormatRequest = new \Google\Service\Sheets\Request([
-            'repeatCell' => [
-                'range' => [
-                    'sheetId' => $sheetId,
-                    'startRowIndex' => 0, // Header row only
-                    'endRowIndex' => 1,
-                    'startColumnIndex' => 0,
-                    'endColumnIndex' => 7,
-                ],
-                'cell' => [
-                    'userEnteredFormat' => [
-                        'textFormat' => [
-                            'bold' => true,
-                            'foregroundColor' => ['red' => 1, 'green' => 1, 'blue' => 1] // White text
-                        ],
-                        'horizontalAlignment' => 'LEFT',
-                        'backgroundColor' => ['red' => 0.26, 'green' => 0.53, 'blue' => 0.96] // Blue background (#4287f5)
-                    ]
-                ],
-                'fields' => 'userEnteredFormat(textFormat, horizontalAlignment, backgroundColor)'
-            ]
-        ]);
-
-        // ✅ Data Formatting (Reset to Default: REMOVE Background Color)
-        $dataFormatRequest = new \Google\Service\Sheets\Request([
-            'repeatCell' => [
-                'range' => [
-                    'sheetId' => $sheetId,
-                    'startRowIndex' => 1, // Data rows start from row 2
-                    'startColumnIndex' => 0,
-                    'endColumnIndex' => 7,
-                ],
-                'cell' => [
-                    'userEnteredFormat' => [
-                        'textFormat' => ['bold' => false], // Regular text
-                        'horizontalAlignment' => 'LEFT' // Left-aligned text
-                    ]
-                ],
-                'fields' => 'userEnteredFormat(textFormat, horizontalAlignment)' // ❌ Removed "backgroundColor"
-            ]
-        ]);
-
-        // ✅ Auto-Resize Columns
-        $autoResizeRequest = new \Google\Service\Sheets\Request([
-            'autoResizeDimensions' => [
-                'dimensions' => [
-                    'sheetId' => $sheetId,
-                    'dimension' => 'COLUMNS',
-                    'startIndex' => 0,
-                    'endIndex' => 7
+            // ✅ Header Formatting (KEEP this as is, Blue Background)
+            $headerFormatRequest = new \Google\Service\Sheets\Request([
+                'repeatCell' => [
+                    'range' => [
+                        'sheetId' => $sheetId,
+                        'startRowIndex' => 0, // Header row only
+                        'endRowIndex' => 1,
+                        'startColumnIndex' => 0,
+                        'endColumnIndex' => 7,
+                    ],
+                    'cell' => [
+                        'userEnteredFormat' => [
+                            'textFormat' => [
+                                'bold' => true,
+                                'foregroundColor' => ['red' => 1, 'green' => 1, 'blue' => 1] // White text
+                            ],
+                            'horizontalAlignment' => 'LEFT',
+                            'backgroundColor' => ['red' => 0.26, 'green' => 0.53, 'blue' => 0.96] // Blue background (#4287f5)
+                        ]
+                    ],
+                    'fields' => 'userEnteredFormat(textFormat, horizontalAlignment, backgroundColor)'
                 ]
-            ]
-        ]);
+            ]);
 
-        // Execute batch update
-        $requestBody = new \Google\Service\Sheets\BatchUpdateSpreadsheetRequest([
-            'requests' => [$sortRequest, $headerFormatRequest, $dataFormatRequest, $autoResizeRequest]
-        ]);
+            // ✅ Data Formatting (Reset to Default: REMOVE Background Color)
+            $dataFormatRequest = new \Google\Service\Sheets\Request([
+                'repeatCell' => [
+                    'range' => [
+                        'sheetId' => $sheetId,
+                        'startRowIndex' => 1, // Data rows start from row 2
+                        'startColumnIndex' => 0,
+                        'endColumnIndex' => 7,
+                    ],
+                    'cell' => [
+                        'userEnteredFormat' => [
+                            'textFormat' => ['bold' => false], // Regular text
+                            'horizontalAlignment' => 'LEFT' // Left-aligned text
+                        ]
+                    ],
+                    'fields' => 'userEnteredFormat(textFormat, horizontalAlignment)' // ❌ Removed "backgroundColor"
+                ]
+            ]);
 
-        $this->services->spreadsheets->batchUpdate($spreadsheet_id, $requestBody);
+            // ✅ Auto-Resize Columns
+            $autoResizeRequest = new \Google\Service\Sheets\Request([
+                'autoResizeDimensions' => [
+                    'dimensions' => [
+                        'sheetId' => $sheetId,
+                        'dimension' => 'COLUMNS',
+                        'startIndex' => 0,
+                        'endIndex' => 7
+                    ]
+                ]
+            ]);
 
-        \Log::info("Sorting and header formatting applied successfully for '{$sheetTitle}'.");
+            // Execute batch update
+            $requestBody = new \Google\Service\Sheets\BatchUpdateSpreadsheetRequest([
+                'requests' => [$sortRequest, $headerFormatRequest, $dataFormatRequest, $autoResizeRequest]
+            ]);
 
-    } catch (\Exception $e) {
-        \Log::error('Google Sheets API Sort Error: ' . $e->getMessage());
+            $this->services->spreadsheets->batchUpdate($spreadsheet_id, $requestBody);
+
+            \Log::info("Sorting and header formatting applied successfully for '{$sheetTitle}'.");
+
+        } catch (\Exception $e) {
+            \Log::error('Google Sheets API Sort Error: ' . $e->getMessage());
+        }
     }
-}
-
-
-
-
-
-
 }
