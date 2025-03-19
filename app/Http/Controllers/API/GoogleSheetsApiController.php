@@ -67,7 +67,7 @@ class GoogleSheetsApiController extends Controller
             //Google Sheet add API
             $this->api_services->rows($ssid, $sheet_tab, [$input]);
 
-            $this->api_services->sortSheet($ssid, 6, 'Sheet1');
+            $this->api_services->sortSheet($ssid, 6, $sheet_tab);
 
             // Return success response
             return response()->json(['response' => 'Successfully Saved'], 201);
