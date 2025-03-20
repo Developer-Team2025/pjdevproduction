@@ -3,7 +3,7 @@
 use App\Http\Controllers\API\CertificateController;
 use App\Http\Controllers\API\GoogleSheetsApiController;
 use App\Http\Controllers\API\OurTeamsController;
-use App\Http\Controllers\API\SampleRequest;
+use App\Http\Controllers\API\SampleController;
 use Illuminate\Support\Facades\Route;
 
 // Googlesheets API
@@ -13,6 +13,6 @@ Route::post('/google-api-create-row', [GoogleSheetsApiController::class, 'writeS
 Route::post('/create-team-profile', [OurTeamsController::class, 'createOurTeamProfile']);
 Route::get('/our-teams', [OurTeamsController::class, 'getOurTeams']);
 Route::get('/certificates', [CertificateController::class, 'getCertificates']);
-Route::post('/sample', [SampleRequest::class, 'sample']);
+Route::post('/sample', [SampleController::class, 'sample']);
 
 // Edit Routes
