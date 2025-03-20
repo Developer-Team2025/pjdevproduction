@@ -109,11 +109,8 @@ class GoogleServices
             $spreadsheet = $this->services->spreadsheets->get($spreadsheet_id);
             $sheetId = null;
 
-            $spreadsheet2 = $this->services->spreadsheets->get($spreadsheet_id, $sheetTitle);
-
             foreach ($spreadsheet->getSheets() as $sheet) {
                 if ($sheet->getProperties()->getTitle() === $sheetTitle) {
-                    echo var_dump($spreadsheet2->getValues());
                     $sheetId = $sheet->getProperties()->getSheetId();
                     break;
                 }
