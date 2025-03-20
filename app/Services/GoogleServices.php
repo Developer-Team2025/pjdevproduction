@@ -33,6 +33,34 @@ class GoogleServices
         $this->services = new Sheets($client);
     }
 
+    // private function mergeRow(string $spreadsheet_id, int $sheetId, int $rowIndex, int $startColumn, int $endColumn)
+    // {
+    //     try {
+    //         $mergeRequest = new \Google\Service\Sheets\Request([
+    //             'mergeCells' => [
+    //                 'range' => [
+    //                     'sheetId' => $sheetId,
+    //                     'startRowIndex' => $rowIndex,
+    //                     'endRowIndex' => $rowIndex + 1, // One row only
+    //                     'startColumnIndex' => $startColumn,
+    //                     'endColumnIndex' => $endColumn + 1, // Merge A-G (0-6)
+    //                 ],
+    //                 'mergeType' => 'MERGE_ALL'
+    //             ]
+    //         ]);
+
+    //         $batchRequest = new \Google\Service\Sheets\BatchUpdateSpreadsheetRequest([
+    //             'requests' => [$mergeRequest]
+    //         ]);
+
+    //         $this->services->spreadsheets->batchUpdate($spreadsheet_id, $batchRequest);
+    //         \Log::info("Row {$rowIndex} merged from column {$startColumn} to {$endColumn}.");
+
+    //     } catch (\Exception $e) {
+    //         \Log::error("Google Sheets API Merge Error: " . $e->getMessage());
+    //     }
+    // }
+
     /**
      * Retrieves data from a specified Google Sheet range.
      *
@@ -74,14 +102,18 @@ class GoogleServices
      * @param int $columnIndex The index of the column to sort by (0-based).
      * @return void
      */
-    public function sortSheet(string $spreadsheet_id, int $columnIndex, string $sheetTitle)
+
+    public function addRow(string $spreadsheet_id, int $columnIndex, string $sheetTitle)
     {
         try {
             $spreadsheet = $this->services->spreadsheets->get($spreadsheet_id);
             $sheetId = null;
 
+            $spreadsheet2 = $this->services->spreadsheets->get($spreadsheet_id, $sheetTitle);
+
             foreach ($spreadsheet->getSheets() as $sheet) {
                 if ($sheet->getProperties()->getTitle() === $sheetTitle) {
+                    echo var_dump($spreadsheet2->getValues());
                     $sheetId = $sheet->getProperties()->getSheetId();
                     break;
                 }
@@ -149,11 +181,11 @@ class GoogleServices
                             'horizontalAlignment' => 'LEFT' // Left-aligned text
                         ]
                     ],
-                    'fields' => 'userEnteredFormat(textFormat, horizontalAlignment)' //
+                    'fields' => 'userEnteredFormat(textFormat, horizontalAlignment)'
                 ]
             ]);
 
-            // ✅ Auto-Resize Columns
+            // Auto-Resize Columns
             $autoResizeRequest = new \Google\Service\Sheets\Request([
                 'autoResizeDimensions' => [
                     'dimensions' => [
@@ -165,17 +197,163 @@ class GoogleServices
                 ]
             ]);
 
+            // Get last row index dynamically
+            $sheetData = $this->services->spreadsheets_values->get($spreadsheet_id, $sheetTitle);
+
+            $lastRowIndex = count($sheetData->getValues());
+
+            // Merge row below existing data
+            $mergeCellsRequest = new \Google\Service\Sheets\Request([
+                'mergeCells' => [
+                    'range' => [
+                        'sheetId' => $sheetId,
+                        'startRowIndex' => $lastRowIndex,
+                        'endRowIndex' => $lastRowIndex + 1,
+                        'startColumnIndex' => 0,
+                        'endColumnIndex' => 7
+                    ],
+                    'mergeType' => 'MERGE_ALL'
+                ]
+            ]);
+
+            // Insert current date into the merged row and center align
+            $currentDate = date('Y-m-d');
+
+            $insertDateRequest = new \Google\Service\Sheets\Request([
+                'repeatCell' => [
+                    'range' => [
+                        'sheetId' => $sheetId,
+                        'startRowIndex' => $lastRowIndex,
+                        'endRowIndex' => $lastRowIndex + 1,
+                        'startColumnIndex' => 0,
+                        'endColumnIndex' => 1
+                    ],
+                    'cell' => [
+                        'userEnteredValue' => ['stringValue' => $currentDate],
+                        'userEnteredFormat' => [
+                            'horizontalAlignment' => 'CENTER'
+                        ]
+                    ],
+                    'fields' => 'userEnteredValue, userEnteredFormat(horizontalAlignment)'
+                ]
+            ]);
+
             // Execute batch update
             $requestBody = new \Google\Service\Sheets\BatchUpdateSpreadsheetRequest([
-                'requests' => [$sortRequest, $headerFormatRequest, $dataFormatRequest, $autoResizeRequest]
+                'requests' => [$sortRequest, $headerFormatRequest, $dataFormatRequest, $autoResizeRequest, $mergeCellsRequest, $insertDateRequest]
             ]);
 
             $this->services->spreadsheets->batchUpdate($spreadsheet_id, $requestBody);
 
-            \Log::info("Sorting and header formatting applied successfully for '{$sheetTitle}'.");
+            \Log::info("Sorting, header formatting, and merged date row applied successfully for '{$sheetTitle}'.");
 
         } catch (\Exception $e) {
             \Log::error('Google Sheets API Sort Error: ' . $e->getMessage());
-        }
+        }        
     }
+
+    // public function addRow(string $spreadsheet_id, int $columnIndex, string $sheetTitle)
+    // {
+    //     try {
+    //         $spreadsheet = $this->services->spreadsheets->get($spreadsheet_id);
+    //         $sheetId = null;
+
+    //         foreach ($spreadsheet->getSheets() as $sheet) {
+    //             if ($sheet->getProperties()->getTitle() === $sheetTitle) {
+    //                 $sheetId = $sheet->getProperties()->getSheetId();
+    //                 break;
+    //             }
+    //         }
+
+    //         if ($sheetId === null) {
+    //             \Log::error("Google Sheets API: Sheet '{$sheetTitle}' not found.");
+    //             return;
+    //         }
+
+    //         // Sorting request (skip header row)
+    //         $sortRequest = new \Google\Service\Sheets\Request([
+    //             'sortRange' => [
+    //                 'range' => [
+    //                     'sheetId' => $sheetId,
+    //                     'startRowIndex' => 1, // Skip header row
+    //                     'startColumnIndex' => 0,
+    //                     'endColumnIndex' => 7,
+    //                 ],
+    //                 'sortSpecs' => [
+    //                     [
+    //                         'dimensionIndex' => $columnIndex,
+    //                         'sortOrder' => 'ASCENDING'
+    //                     ]
+    //                 ]
+    //             ]
+    //         ]);
+
+    //         // Header Formatting (KEEP this as is, Blue Background)
+    //         $headerFormatRequest = new \Google\Service\Sheets\Request([
+    //             'repeatCell' => [
+    //                 'range' => [
+    //                     'sheetId' => $sheetId,
+    //                     'startRowIndex' => 0, // Header row only
+    //                     'endRowIndex' => 1,
+    //                     'startColumnIndex' => 0,
+    //                     'endColumnIndex' => 7,
+    //                 ],
+    //                 'cell' => [
+    //                     'userEnteredFormat' => [
+    //                         'textFormat' => [
+    //                             'bold' => true,
+    //                             'foregroundColor' => ['red' => 1, 'green' => 1, 'blue' => 1] // White text
+    //                         ],
+    //                         'horizontalAlignment' => 'LEFT',
+    //                         'backgroundColor' => ['red' => 0.26, 'green' => 0.53, 'blue' => 0.96] // Blue background (#4287f5)
+    //                     ]
+    //                 ],
+    //                 'fields' => 'userEnteredFormat(textFormat, horizontalAlignment, backgroundColor)'
+    //             ]
+    //         ]);
+
+    //         // Data Formatting (Reset to Default: REMOVE Background Color)
+    //         $dataFormatRequest = new \Google\Service\Sheets\Request([
+    //             'repeatCell' => [
+    //                 'range' => [
+    //                     'sheetId' => $sheetId,
+    //                     'startRowIndex' => 1, // Data rows start from row 2
+    //                     'startColumnIndex' => 0,
+    //                     'endColumnIndex' => 7,
+    //                 ],
+    //                 'cell' => [
+    //                     'userEnteredFormat' => [
+    //                         'textFormat' => ['bold' => false], // Regular text
+    //                         'horizontalAlignment' => 'LEFT' // Left-aligned text
+    //                     ]
+    //                 ],
+    //                 'fields' => 'userEnteredFormat(textFormat, horizontalAlignment)' //
+    //             ]
+    //         ]);
+
+    //         // Auto-Resize Columns
+    //         $autoResizeRequest = new \Google\Service\Sheets\Request([
+    //             'autoResizeDimensions' => [
+    //                 'dimensions' => [
+    //                     'sheetId' => $sheetId,
+    //                     'dimension' => 'COLUMNS',
+    //                     'startIndex' => 0,
+    //                     'endIndex' => 7
+    //                 ]
+    //             ]
+    //         ]);
+
+    //         // Execute batch update
+    //         $requestBody = new \Google\Service\Sheets\BatchUpdateSpreadsheetRequest([
+    //             'requests' => [$sortRequest, $headerFormatRequest, $dataFormatRequest, $autoResizeRequest]
+    //         ]);
+
+    //         $this->services->spreadsheets->batchUpdate($spreadsheet_id, $requestBody);
+
+    //         \Log::info("Sorting and header formatting applied successfully for '{$sheetTitle}'.");
+
+    //     } catch (\Exception $e) {
+    //         \Log::error('Google Sheets API Sort Error: ' . $e->getMessage());
+    //     }        
+    // }
 }
