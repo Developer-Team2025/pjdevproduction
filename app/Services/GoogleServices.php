@@ -509,7 +509,7 @@ public function rows(string $spreadsheet_id, string $range, array $data)
             // Execute batch update
             $requestBody = new \Google\Service\Sheets\BatchUpdateSpreadsheetRequest([
                 // 'requests' => [$sortRequest, $headerFormatRequest, $dataFormatRequest, $autoResizeRequest, $mergeCellsRequest, $insertDateRequest]
-                // 'requests' => [ $headerFormatRequest, $dataFormatRequest]
+                'requests' => [ $headerFormatRequest]
             ]);
 
             $this->services->spreadsheets->batchUpdate($spreadsheet_id, $requestBody);
