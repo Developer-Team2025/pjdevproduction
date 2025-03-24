@@ -59,11 +59,38 @@ class GoogleSheetsApiRequest extends FormRequest
      *
      * @param Validator $validator
      */
+    // public function withValidator($validator)
+    // {
+    //     $validator->after(function ($validator) {
+    //         $ssid = env('SheetId');
+    //         $sheet_tab = env('Sheets'); // Ensuring data is checked in Sheet2
+
+    //         // Retrieve existing sheet data
+    //         $existingData = app(\App\Services\GoogleServices::class)->sheets($ssid, $sheet_tab);
+
+    //         if ($existingData) {
+    //             $inputFullName = strtolower(trim($this->input('fullname')));
+    //             $inputEmail = strtolower(trim($this->input('email')));
+
+    //             foreach ($existingData as $row) {
+    //                 $existingFullName = isset($row[0]) ? strtolower(trim($row[0])) : '';
+    //                 $existingEmail = isset($row[1]) ? strtolower(trim($row[1])) : '';
+
+    //                 if ($existingFullName === $inputFullName && $existingEmail === $inputEmail) {
+    //                     throw new HttpResponseException(response()->json([
+    //                         'duplicate_entry' => 'This account is already registered in our system'
+    //                     ], 422));
+    //                 }
+    //             }
+    //         }
+    //     });
+    // }
+
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            $ssid = '1660409-8EKI1oxfJXP55EFfgNnmrwAU3H_sLyEyNuik';
-            $sheet_tab = 'Sheet3'; // Ensuring data is checked in Sheet2
+            $ssid = env('SheetId');
+            $sheet_tab = env('Sheets'); // Ensuring data is checked in Sheet2
 
             // Retrieve existing sheet data
             $existingData = app(\App\Services\GoogleServices::class)->sheets($ssid, $sheet_tab);
