@@ -81,7 +81,7 @@ class GoogleSheetsApiController extends Controller
             
             $this->api_services->rows($ssid, $sheet_tab, [$input]);
 
-            $this->api_services->addRow($ssid, 6, $sheet_tab, [$input]);
+            $this->api_services->addRow($ssid, 6, $sheet_tab);
 
             // Return success response
             return response()->json(['response' => 'Successfully Saved'], 201);
