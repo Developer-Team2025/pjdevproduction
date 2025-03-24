@@ -45,8 +45,8 @@ class GoogleSheetsApiController extends Controller
     {
         try {
             // Google Sheets settings
-            $ssid = '1660409-8EKI1oxfJXP55EFfgNnmrwAU3H_sLyEyNuik';
-            $sheet_tab = 'Sheet2'; // Sheet2!A1 | Sheet2
+            $ssid = env('SheetId');
+            $sheet_tab = env('Sheets'); // Sheet2!A1 | Sheet2
 
             // Define header columns
             $column_header = ['Full Name', 'Email', 'Phone', 'Inquiry Type', 'Country', 'Accept Privacy', 'Date'];
