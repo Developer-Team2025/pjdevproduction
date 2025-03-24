@@ -62,8 +62,8 @@ class GoogleSheetsApiRequest extends FormRequest
     // public function withValidator($validator)
     // {
     //     $validator->after(function ($validator) {
-    //         $ssid = '1660409-8EKI1oxfJXP55EFfgNnmrwAU3H_sLyEyNuik';
-    //         $sheet_tab = 'Sheet2'; // Ensuring data is checked in Sheet2
+    //         $ssid = env('SheetId');
+    //         $sheet_tab = env('Sheets'); // Ensuring data is checked in Sheet2
 
     //         // Retrieve existing sheet data
     //         $existingData = app(\App\Services\GoogleServices::class)->sheets($ssid, $sheet_tab);
@@ -89,8 +89,8 @@ class GoogleSheetsApiRequest extends FormRequest
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            $ssid = '1660409-8EKI1oxfJXP55EFfgNnmrwAU3H_sLyEyNuik';
-            $sheet_tab = 'Sheet2'; // Ensuring data is checked in Sheet2
+            $ssid = env('SheetId');
+            $sheet_tab = env('Sheets'); // Ensuring data is checked in Sheet2
 
             // Retrieve existing sheet data
             $existingData = app(\App\Services\GoogleServices::class)->sheets($ssid, $sheet_tab);
