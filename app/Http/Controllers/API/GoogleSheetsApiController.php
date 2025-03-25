@@ -45,8 +45,8 @@ class GoogleSheetsApiController extends Controller
     {
         try {
             // Google Sheets settings
-            $ssid = '1660409-8EKI1oxfJXP55EFfgNnmrwAU3H_sLyEyNuik';
-            $sheet_tab = 'Sheet2'; // Sheet2!A1 | Sheet2
+            $ssid = env('SheetId');
+            $sheet_tab = env('Sheets'); // Sheet2!A1 | Sheet2
 
             // Define header columns
             $column_header = ['Full Name', 'Email', 'Phone', 'Inquiry Type', 'Country', 'Accept Privacy', 'Date'];
@@ -59,15 +59,29 @@ class GoogleSheetsApiController extends Controller
                 $request->input('email'),
                 $request->input('phone'),
                 $request->input('inquiry_type'),
-                $request->input('country'),
+                $request->input('country') === 'Africa'  ? $request->input('country') : 'Africa'  ,
                 $request->boolean('accept_privacy') ? "Accepted" : false,
-                $request->input('date_now')
+                $request->input('date_now') === Null ? date('D M d, Y, h:i:s') : $request->input('date_now')
             ];
 
             //Google Sheet add API
+            // $this->api_services->addTable($ssid, $sheet_tab);
+            $date_text = date('D M d'); // Example: "Thu Mar 23"
+            $existingData = app(\App\Services\GoogleServices::class)->sheets($ssid, $sheet_tab);
+            $key = false;
+            foreach ($existingData as $index => $row) {
+                if ($row[0] === $date_text) {
+                    $key = $index;
+                    break;
+                }
+            }
+            if ($key === false) {
+                $this->api_services->addTable($ssid, $sheet_tab, [[$date_text]]);
+            }
+            
             $this->api_services->rows($ssid, $sheet_tab, [$input]);
 
-            $this->api_services->sortSheet($ssid, 6, $sheet_tab);
+            $this->api_services->addRow($ssid, 6, $sheet_tab);
 
             // Return success response
             return response()->json(['response' => 'Successfully Saved'], 201);
