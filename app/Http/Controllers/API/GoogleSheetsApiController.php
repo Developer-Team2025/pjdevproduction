@@ -65,18 +65,19 @@ class GoogleSheetsApiController extends Controller
             ];
 
             //Google Sheet add API
-            // $this->api_services->addTable($ssid, $sheet_tab);
             $date_text = date('D M d'); // Example: "Thu Mar 23"
             $existingData = app(\App\Services\GoogleServices::class)->sheets($ssid, $sheet_tab);
             $key = false;
+
             foreach ($existingData as $index => $row) {
                 if ($row[0] === $date_text) {
                     $key = $index;
                     break;
                 }
             }
+            
             if ($key === false) {
-                $this->api_services->addTable($ssid, $sheet_tab, [[$date_text]]);
+                $this->api_services->addMergedRow($ssid, $sheet_tab, [[$date_text]]);
             }
             
             $this->api_services->rows($ssid, $sheet_tab, [$input]);
