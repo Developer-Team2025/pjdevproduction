@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 use App\Traits\Authorization;
 use Illuminate\Foundation\Http\FormRequest;
 
-class SampleQuest extends FormRequest
+class ResultRequest extends FormRequest
 {
     use Authorization;
     /**
@@ -25,6 +25,7 @@ class SampleQuest extends FormRequest
     {
         return[
             "name"=> ['required','string'],
+            "content"=> ['required','string'],
         ];
     }
 }
