@@ -78,6 +78,7 @@ class GoogleSheetsApiController extends Controller
             
             if ($key === false) {
                 $this->api_services->addMergedRow($ssid, $sheet_tab, [[$date_text]]);
+                $this->api_services->addMergedDate($ssid,$sheet_tab,[[$date_text]]);
             }
             
             $this->api_services->rows($ssid, $sheet_tab, [$input]);
