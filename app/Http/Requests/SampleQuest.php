@@ -10,11 +10,11 @@ class SampleQuest extends FormRequest
     /**
      * Determine if the user is authorized to make this request.
      */
-    protected array $rules = [];
+    // protected array $rules = [];
 
-    public function addRule(string $field, array|string $rule){
-        $this->$rules[$field]=$rule;
-    }
+    // public function addRule(string $field, array|string $rule){
+    //     $this->$rules[$field]=$rule;
+    // }
 
     /**
      * Get the validation rules that apply to the request.
@@ -23,6 +23,8 @@ class SampleQuest extends FormRequest
      */
     public function rules(): array
     {
-        return $this->$rules;
+        return[
+            "name"=> ['required','string'],
+        ];
     }
 }

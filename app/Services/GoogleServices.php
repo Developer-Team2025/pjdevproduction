@@ -86,6 +86,7 @@ class GoogleServices
         $existingData = app(\App\Services\GoogleServices::class)->sheets($spreadsheet_id, $range);
         $startRow = count($existingData) - count($data); // First row of new entries
         $endRow = count($existingData); // Last row of new entries
+        
 
         // Reset formatting for the newly added rows (remove bold)
         $resetFormatRequest = [
@@ -95,7 +96,7 @@ class GoogleServices
                     'startRowIndex' => $startRow,
                     'endRowIndex' => $endRow,
                     'startColumnIndex' => 0,
-                    'endColumnIndex' => 7,
+                    'endColumnIndex' => 9,
                 ],
                 'cell' => [
                     'userEnteredFormat' => [
@@ -103,10 +104,15 @@ class GoogleServices
                             'bold' => false,
                             'fontSize' => 11
                         ],
+                            'backgroundColor' => [
+                                'red' => 1.0,
+                                'green' => 1.0,
+                                'blue' => 1.0
+                            ],
                         'horizontalAlignment' => 'LEFT'
                     ]
                 ],
-                'fields' => 'userEnteredFormat(textFormat.bold,textFormat.fontSize,horizontalAlignment)'
+                'fields' => 'userEnteredFormat(textFormat.bold,textFormat.fontSize,backgroundColor,horizontalAlignment)'
             ]
         ];
 
@@ -148,7 +154,7 @@ class GoogleServices
                     'startRowIndex' => $lastRow,  // Newly inserted date row
                     'endRowIndex' => $lastRow + 1,
                     'startColumnIndex' => 0,
-                    'endColumnIndex' => 7,
+                    'endColumnIndex' => 9,
                 ],
                 'mergeType' => 'MERGE_ALL'
             ]
@@ -161,7 +167,7 @@ class GoogleServices
                     'startRowIndex' => $lastRow,
                     'endRowIndex' => $lastRow + 1,
                     'startColumnIndex' => 0,
-                    'endColumnIndex' => 7,
+                    'endColumnIndex' => 9,
                 ],
                 'cell' => [
                     'userEnteredFormat' => [
@@ -169,7 +175,13 @@ class GoogleServices
                         'verticalAlignment' => 'MIDDLE',
                         'textFormat' => [
                             'bold' => true,
-                            'fontSize' => 11
+                            'fontSize' => 14
+                            
+                        ],
+                        'backgroundColor' => [
+                            'red' => 0.808,  // 206/255
+                            'green' => 0.882, // 225/255
+                            'blue' => 0.949  // 242/255
                         ],
                     //     'backgroundColor' => [
                     //         'red' => 0.68,
@@ -246,7 +258,7 @@ class GoogleServices
                         
                     ]
                 ],
-                'fields' => 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat.bold,textFormat.fontSize)'
+                'fields' => 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat.bold,textFormat.fontSize, backgroundColor.red)'
             ]
         ];
 
