@@ -187,7 +187,6 @@ class GoogleSheetsApiController extends Controller
     {
         try {
 
-
             
             $ssid = env('SheetId');
             $sheet_tab = env('Sheets');
