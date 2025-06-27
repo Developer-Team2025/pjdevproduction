@@ -111,6 +111,22 @@ return [
             // 'encrypt' => env('DB_ENCRYPT', 'yes'),
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
+     'greyzone_consulting' => [
+            'driver' => 'mysql',
+            'host' => env('GREYZONE_DB_HOST', '209.74.72.230'),
+            'port' => env('GREYZONE_DB_PORT', '3306'),
+            'database' => env('GREYZONE_DB_DATABASE', 'greyzone_consulting'),
+            'username' => env('GREYZONE_DB_USERNAME', 'root'),
+            'password' => env('GREYZONE_DB_PASSWORD', 'M@trix103!'),
+            'unix_socket' => env('GREYZONE_DB_SOCKET', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+            'engine' => null,
+        ],
+
+
 
     ],
 

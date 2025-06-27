@@ -6,6 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\GoogleSheetsApiRequest;
 use App\Services\GoogleServices;
 use Illuminate\Http\JsonResponse;
+use App\Models\GoogleSheetSubmission;
+use Google_Client;
+use Google_Service_Sheets;
+use Google_Service_Sheets_ClearValuesRequest;
+use Google_Service_Sheets_ValueRange;
+use Google_Service_Sheets_BatchUpdateValuesRequest;
 
 /**
  * Class GoogleSheetApiController
@@ -43,6 +49,14 @@ class GoogleSheetsApiController extends Controller
      */
     public function writeSheet(GoogleSheetsApiRequest $request): JsonResponse
     {
+        $ssid = env('SheetId');
+        $sheet_tab = env('Sheets');
+
+        $client = self::getClientInstance();
+        $service = new Google_Service_Sheets($client);
+        $response = $service->spreadsheets_values->get( $ssid, $sheet_tab);
+        $values = $response->getValues();
+
         try {
             // Google Sheets settings
             $ssid = env('SheetId');
@@ -71,7 +85,7 @@ class GoogleSheetsApiController extends Controller
             $key = false;
 
             foreach ($existingData as $index => $row) {
-                if ($row[0] === $date_format) {
+                if (isset($row[0]) && $row[0] === $date_format) {
                     $key = $index;
                     break;
                 }
@@ -85,7 +99,19 @@ class GoogleSheetsApiController extends Controller
 
             $this->api_services->addRow($ssid, 6, $sheet_tab);
 
+            
+            GoogleSheetSubmission::create([
+                'fullname'      => $request->input('fullname'),
+                'email'          => $request->input('email'),
+                'phone'          => $request->input('phone'),
+                'inquiry_type'   => $request->input('inquiry_type'),
+                'country'        => $request->input('country') === 'Africa' ? 'Africa' : $request->input('country'),
+                'accept_privacy' => $request->boolean('accept_privacy') ? 1 : 0, // ✅ Integer value
+                'date_now'       => $request->input('date_now') === Null ? date('D M d, Y, h:i:s') : $request->input('date_now')
+            ]);
+
             // Return success response
+            $this->syncSheetToDatabase();
             return response()->json(['response' => 'Successfully Saved'], 201);
 
         } catch (\Exception $e) {
@@ -96,4 +122,128 @@ class GoogleSheetsApiController extends Controller
             ]);
         }
     }
+
+    private static function getClientInstance(): Google_Client
+    {
+        $client = new Google_Client();
+        $client->setApplicationName('Laravel Google Sheets API');
+        $client->setScopes([Google_Service_Sheets::SPREADSHEETS]);
+        $client->setAuthConfig(storage_path('app/hackz-decoder-02ad9844a236.json'));
+        $client->setAccessType('offline');
+        $client->setPrompt('select_account consent');
+        return $client;
+    }
+
+    // private function syncSheetToDatabase(): void
+    // {
+    //     try {
+    //         $ssid = env('SheetId');
+    //         $sheet_tab = env('Sheets');
+    
+    //         $client = self::getClientInstance();
+    //         $service = new \Google_Service_Sheets($client);
+    //         $response = $service->spreadsheets_values->get($ssid, $sheet_tab);
+    //         $rows = $response->getValues();
+    
+    //         \Log::info('Sheet rows:', $rows);
+    
+    //         if (count($rows) <= 1) {
+    //             \Log::warning('No data to sync (only header row)');
+    //             return;
+    //         }
+    
+    //         $headers = array_map('strtolower', $rows[0]);
+    
+    //         foreach (array_slice($rows, 1) as $row) {
+    //             $data = array_combine($headers, $row + array_fill(0, count($headers), null));
+                
+    //             if (!isset($data['email'])) continue;
+    
+    //             $exists = \App\Models\GoogleSheetSubmission::where('email', $data['email'])->exists();
+    
+    //             if ($exists) {
+    //                 \Log::info('Skipping existing email: ' . $data['email']);
+    //                 continue;
+    //             }
+    
+    //             \App\Models\GoogleSheetSubmission::create([
+    //                 'fullname'        => $data['full name'] ?? '',
+    //                 'email'           => $data['email'] ?? '',
+    //                 'phone'           => $data['phone'] ?? '',
+    //                 'inquiry_type'    => $data['inquiry type'] ?? '',
+    //                 'country'         => $data['country'] ?? '',
+    //                 'accept_privacy'  => strtolower($data['accept privacy'] ?? '') === 'accepted' ? 1 : 0,
+    //                 'date_now'        => $data['date'] ?? now(),
+    //             ]);
+    
+    //             \Log::info('Inserted: ' . $data['email']);
+    //         }
+    
+    //     } catch (\Exception $e) {
+    //         \Log::error('Sync failed: ' . $e->getMessage());
+    //     }
+    // }
+    private function syncSheetToDatabase(): void
+    {
+        try {
+
+
+            
+            $ssid = env('SheetId');
+            $sheet_tab = env('Sheets');
+    
+            $client = self::getClientInstance();
+            $service = new \Google_Service_Sheets($client);
+            $response = $service->spreadsheets_values->get($ssid, $sheet_tab);
+            $rows = $response->getValues();
+    
+            \Log::info('Sheet rows:', $rows);
+    
+            if (count($rows) <= 1) {
+                \Log::warning('No data to sync (only header row)');
+                return;
+            }
+    
+            $headers = array_map('strtolower', $rows[0]);
+    
+            foreach (array_slice($rows, 1) as $row) {
+                // Pad row to match headers length
+                $row = array_pad($row, count($headers), null);
+                $data = array_combine($headers, $row);
+    
+                if (!isset($data['email']) || empty($data['email'])) {
+                    \Log::info('Skipping row with empty email.');
+                    continue;
+                }
+    
+                $exists = \App\Models\GoogleSheetSubmission::where('email', $data['email'])->exists();
+    
+                if ($exists) {
+                    \Log::info('Skipping existing email: ' . $data['email']);
+                    continue;
+                }
+    
+                try {
+                    \App\Models\GoogleSheetSubmission::create([
+                        'fullname'        => $data['full name'] ?? '',
+                        'email'           => $data['email'] ?? '',
+                        'phone'           => $data['phone'] ?? '',
+                        'inquiry_type'    => $data['inquiry type'] ?? '',
+                        'country'         => $data['country'] ?? '',
+                        'accept_privacy'  => strtolower($data['accept privacy'] ?? '') === 'accepted' ? 1 : 0,
+                        'date_now'        => $data['date'] ?? now(),
+                    ]);
+    
+                    \Log::info('Inserted: ' . $data['email']);
+                } catch (\Illuminate\Database\QueryException $ex) {
+                    \Log::warning('Duplicate email or DB error: ' . $data['email'] . ' | ' . $ex->getMessage());
+                }
+            }
+    
+        } catch (\Exception $e) {
+            \Log::error('Sync failed: ' . $e->getMessage());
+        }
+    }
+     
+
 }
